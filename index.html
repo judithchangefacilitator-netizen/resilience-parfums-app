@@ -1,0 +1,491 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Resilience Parfums</title>
+<style>
+  :root{
+    --bg:#faf7f4;
+    --card:#ffffff;
+    --ink:#241f1c;
+    --muted:#8a7f78;
+    --line:#e9e1da;
+    --accent:#a6623c;
+    --accent-ink:#ffffff;
+    --good:#3d7a52;
+    --danger:#b3452f;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
+  body{padding-bottom:88px;}
+  h1,h2,h3{margin:0 0 4px;font-weight:600;}
+  .wrap{max-width:480px;margin:0 auto;padding:16px;}
+  .topbar{display:flex;align-items:center;justify-content:space-between;
+    padding:14px 16px;background:var(--card);border-bottom:1px solid var(--line);
+    position:sticky;top:0;z-index:10;}
+  .topbar .brand{font-size:15px;font-weight:700;letter-spacing:.02em;}
+  .topbar .who{font-size:13px;color:var(--muted);}
+  .topbar .switch{background:none;border:none;color:var(--accent);font-size:13px;
+    font-weight:600;padding:6px 8px;cursor:pointer;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;
+    padding:16px;margin-bottom:14px;}
+  .hidden{display:none !important;}
+  label{display:block;font-size:13px;font-weight:600;color:var(--muted);
+    margin:14px 0 6px;}
+  label:first-child{margin-top:0;}
+  input[type=text],input[type=tel],input[type=number]{
+    width:100%;padding:12px 12px;border:1px solid var(--line);border-radius:10px;
+    font-size:16px;background:#fff;color:var(--ink);}
+  input:focus{outline:2px solid var(--accent);outline-offset:1px;}
+  .btn{display:block;width:100%;text-align:center;padding:14px 16px;border-radius:12px;
+    border:none;font-size:16px;font-weight:700;cursor:pointer;margin-top:14px;}
+  .btn-primary{background:var(--accent);color:var(--accent-ink);}
+  .btn-secondary{background:#fff;color:var(--accent);border:1px solid var(--accent);}
+  .btn-ghost{background:none;color:var(--muted);border:1px solid var(--line);}
+  .btn:disabled{opacity:.5;}
+  .name-grid{display:grid;grid-template-columns:1fr;gap:12px;margin-top:20px;}
+  .name-btn{padding:22px 16px;font-size:20px;font-weight:700;border-radius:16px;
+    border:1px solid var(--line);background:#fff;color:var(--ink);cursor:pointer;}
+  .name-btn:active{background:var(--accent);color:#fff;}
+  .search-wrap{position:relative;}
+  .results{position:absolute;left:0;right:0;top:100%;background:#fff;
+    border:1px solid var(--line);border-top:none;border-radius:0 0 10px 10px;
+    max-height:260px;overflow-y:auto;z-index:20;box-shadow:0 8px 20px rgba(0,0,0,.08);}
+  .result-item{padding:10px 12px;border-bottom:1px solid var(--line);cursor:pointer;font-size:14px;}
+  .result-item:last-child{border-bottom:none;}
+  .result-item small{display:block;color:var(--muted);}
+  .result-item:active{background:var(--bg);}
+  .cart-item{display:flex;justify-content:space-between;align-items:center;
+    padding:10px 0;border-bottom:1px solid var(--line);gap:8px;}
+  .cart-item:last-child{border-bottom:none;}
+  .cart-item .info{flex:1;min-width:0;}
+  .cart-item .info .n{font-weight:600;font-size:14px;}
+  .cart-item .info .r{font-size:12px;color:var(--muted);}
+  .qty-ctrl{display:flex;align-items:center;gap:8px;}
+  .qty-ctrl button{width:30px;height:30px;border-radius:8px;border:1px solid var(--line);
+    background:#fff;font-size:16px;cursor:pointer;}
+  .qty-ctrl .rm{border-color:var(--danger);color:var(--danger);margin-left:4px;}
+  .empty-hint{color:var(--muted);font-size:14px;text-align:center;padding:18px 0;}
+  .total-row{display:flex;justify-content:space-between;font-weight:700;font-size:16px;
+    padding-top:10px;margin-top:6px;border-top:1px solid var(--line);}
+  .summary-box{background:var(--bg);border:1px dashed var(--line);border-radius:10px;
+    padding:12px;white-space:pre-wrap;font-size:14px;line-height:1.5;font-family:ui-monospace,Menlo,monospace;}
+  .toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);
+    background:var(--ink);color:#fff;padding:10px 18px;border-radius:30px;font-size:14px;
+    opacity:0;pointer-events:none;transition:opacity .2s;z-index:50;}
+  .toast.show{opacity:1;}
+  .tabbar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);
+    display:flex;z-index:10;padding-bottom:env(safe-area-inset-bottom);}
+  .tabbar button{flex:1;padding:12px 4px 10px;background:none;border:none;font-size:12px;
+    font-weight:600;color:var(--muted);cursor:pointer;}
+  .tabbar button.active{color:var(--accent);}
+  .stat-row{display:flex;gap:10px;margin-bottom:12px;}
+  .stat{flex:1;background:var(--bg);border-radius:12px;padding:12px;text-align:center;}
+  .stat .num{font-size:20px;font-weight:800;}
+  .stat .lbl{font-size:11px;color:var(--muted);margin-top:2px;}
+  .seller-row{display:flex;justify-content:space-between;align-items:center;
+    padding:10px 0;border-bottom:1px solid var(--line);}
+  .seller-row:last-child{border-bottom:none;}
+  .seller-row .name{font-weight:600;}
+  .seller-row .figs{font-size:13px;color:var(--muted);text-align:right;}
+  .progress-outer{background:var(--line);border-radius:8px;height:14px;overflow:hidden;margin-top:8px;}
+  .progress-inner{background:var(--good);height:100%;border-radius:8px;transition:width .3s;}
+  .muted{color:var(--muted);font-size:13px;}
+  .error-box{background:#fbeae6;color:var(--danger);border:1px solid #f0c9bf;border-radius:10px;
+    padding:10px 12px;font-size:13px;margin-top:12px;}
+  .config-warning{background:#fff6e0;border:1px solid #f0d98a;color:#6b5300;border-radius:10px;
+    padding:10px 12px;font-size:12px;margin-bottom:14px;}
+  .catnote{font-size:11px;color:var(--muted);margin-top:2px;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div>
+    <div class="brand">Resilience Parfums</div>
+    <div class="who" id="whoLabel">–</div>
+  </div>
+  <button class="switch" id="switchSellerBtn">Cambiar</button>
+</div>
+
+<!-- SCREEN 0: name picker -->
+<div id="screen-picker" class="wrap hidden">
+  <div class="card">
+    <h2>¿Quién eres?</h2>
+    <p class="muted">Toca tu nombre para empezar. Todo lo que registres se guardará a tu nombre.</p>
+    <div class="name-grid" id="nameGrid"></div>
+  </div>
+</div>
+
+<!-- SCREEN 1: log a sale -->
+<div id="screen-sale" class="wrap hidden">
+  <div id="configWarning" class="config-warning hidden">
+    ⚠️ La app aún no está conectada a Google Sheets. Añade la URL del Apps Script en la parte de arriba del archivo (APPS_SCRIPT_URL).
+  </div>
+
+  <div class="card">
+    <h2>Nueva venta</h2>
+    <label for="clientName">Nombre del cliente</label>
+    <input type="text" id="clientName" placeholder="Nombre y apellido">
+    <label for="clientPhone">Teléfono</label>
+    <input type="tel" id="clientPhone" placeholder="+34 ...">
+
+    <label for="perfumeSearch">Perfume</label>
+    <div class="search-wrap">
+      <input type="text" id="perfumeSearch" placeholder="Busca por nombre o nº de referencia..." autocomplete="off">
+      <div id="searchResults" class="results hidden"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Pedido</h3>
+    <div id="cartList"><div class="empty-hint">Aún no has añadido ningún perfume</div></div>
+    <div class="total-row"><span>Total</span><span id="cartTotal">0,00 €</span></div>
+  </div>
+
+  <button class="btn btn-primary" id="confirmOrderBtn">Confirmar pedido</button>
+  <div id="saleError" class="error-box hidden"></div>
+</div>
+
+<!-- SCREEN 2: order confirmation / summary -->
+<div id="screen-confirm" class="wrap hidden">
+  <div class="card">
+    <h2>Pedido registrado ✅</h2>
+    <p class="muted">Copia el resumen y envíalo al cliente por WhatsApp.</p>
+    <div class="summary-box" id="summaryText"></div>
+    <button class="btn btn-secondary" id="copySummaryBtn">Copiar resumen</button>
+    <button class="btn btn-primary" id="newSaleBtn">Registrar otra venta</button>
+  </div>
+</div>
+
+<!-- SCREEN 3: dashboard -->
+<div id="screen-dashboard" class="wrap hidden">
+  <div class="card">
+    <h2>Panel del equipo</h2>
+    <p class="muted" id="dashMonthLabel"></p>
+    <div id="dashLoading" class="muted">Cargando...</div>
+    <div id="dashError" class="error-box hidden"></div>
+    <div id="dashContent" class="hidden">
+      <h3 style="margin-top:10px;">Progreso del equipo</h3>
+      <p class="muted"><span id="teamBottles">0</span> / <span id="teamThreshold">20</span> botellas este mes</p>
+      <div class="progress-outer"><div class="progress-inner" id="teamProgressBar" style="width:0%"></div></div>
+      <p class="muted" id="teamBonusNote" style="margin-top:8px;"></p>
+    </div>
+  </div>
+  <div class="card">
+    <h3>Por vendedor</h3>
+    <div id="sellerStats"></div>
+  </div>
+  <button class="btn btn-ghost" id="refreshDashBtn">Actualizar</button>
+</div>
+
+<div class="tabbar hidden" id="tabbar">
+  <button id="tabSale" class="active">Nueva venta</button>
+  <button id="tabDashboard">Panel</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================================
+   CONFIG — fill this in after you deploy the Google Apps Script web app.
+   See SETUP.md for the exact steps.
+   ========================================================================= */
+const APPS_SCRIPT_URL = "PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE";
+
+const SELLERS = ["Judith", "Cosmo", "Keola"]; // add more names here any time
+
+const BOTTLE_PRICE = 21.90;   // fixed client price, per bottle
+const COMMISSION_PER_BOTTLE = 8.00;
+const TEAM_MONTHLY_TARGET = 20;
+
+const PAYMENT_TERMS_ES = "Gracias por su pedido. Pago completo es necesario.";
+
+/* Catalogue — auto-generated from the official product list, do not hand-edit.
+   Re-run parse_catalogue.py + build.py if Resilience changes the range. */
+const CATALOGUE = [{"name": "Chanel n°5", "ref": "1", "category": "Pour Femme"}, {"name": "CH, Carolina Herrera", "ref": "2", "category": "Pour Femme"}, {"name": "Narciso Rodríguez", "ref": "3", "category": "Pour Femme"}, {"name": "212Nyc, Carolina Herrera", "ref": "4", "category": "Pour Femme"}, {"name": "Be Delicius, DKNY", "ref": "6", "category": "Pour Femme"}, {"name": "Amor, Cacharel", "ref": "10", "category": "Pour Femme"}, {"name": "L'eau D'issey", "ref": "13", "category": "Pour Femme"}, {"name": "Eden, Cacharel", "ref": "14", "category": "Pour Femme"}, {"name": "Trésor, Lancôme", "ref": "15", "category": "Pour Femme"}, {"name": "Light Blue, D&G", "ref": "16", "category": "Pour Femme"}, {"name": "Halloween, J. del Pozo", "ref": "17", "category": "Pour Femme"}, {"name": "Flower, Kenzo", "ref": "18", "category": "Pour Femme"}, {"name": "Nina Ricci", "ref": "22", "category": "Pour Femme"}, {"name": "Ultraviolet, Paco Rabanne", "ref": "23", "category": "Pour Femme"}, {"name": "Ralph, Lauren", "ref": "24", "category": "Pour Femme"}, {"name": "Hilfiger Woman", "ref": "26", "category": "Pour Femme"}, {"name": "Lady Million, P. Rabanne", "ref": "28", "category": "Pour Femme"}, {"name": "Chloé", "ref": "29", "category": "Pour Femme"}, {"name": "Allure, Chanel", "ref": "32", "category": "Pour Femme"}, {"name": "Classique, Jean Paul Gaultier", "ref": "35", "category": "Pour Femme"}, {"name": "Tous", "ref": "41", "category": "Pour Femme"}, {"name": "Addict, Dior", "ref": "44", "category": "Pour Femme"}, {"name": "Coco Mademoiselle, Chanel", "ref": "46", "category": "Pour Femme"}, {"name": "J'adore, Dior", "ref": "48", "category": "Pour Femme"}, {"name": "Chance, Chanel", "ref": "53", "category": "Pour Femme"}, {"name": "Insolence, Guerlain", "ref": "54", "category": "Pour Femme"}, {"name": "Pure Poison, Dior", "ref": "60", "category": "Pour Femme"}, {"name": "Taj Sunset, Escada", "ref": "63", "category": "Pour Femme"}, {"name": "Noa, Cacharel", "ref": "64", "category": "Pour Femme"}, {"name": "Acqua di Gioia, Armani", "ref": "67", "category": "Pour Femme"}, {"name": "Sexy 212, Carolina Herrera", "ref": "68", "category": "Pour Femme"}, {"name": "Touch of Pink, Lacoste", "ref": "70", "category": "Pour Femme"}, {"name": "Alien, Mugler", "ref": "73", "category": "Pour Femme"}, {"name": "DKNY Women", "ref": "74", "category": "Pour Femme"}, {"name": "Miss Dior Chérie", "ref": "76", "category": "Pour Femme"}, {"name": "Rush, Gucci", "ref": "82", "category": "Pour Femme"}, {"name": "Bright Crystal, Versace", "ref": "83", "category": "Pour Femme"}, {"name": "Opium, YSL", "ref": "89", "category": "Pour Femme"}, {"name": "The One, D&G", "ref": "98", "category": "Pour Femme"}, {"name": "Angel, Mugler", "ref": "99", "category": "Pour Femme"}, {"name": "Gucci Guilty", "ref": "106", "category": "Pour Femme"}, {"name": "L'ímperatrice, D&G", "ref": "403", "category": "Pour Femme"}, {"name": "Hypnotic Poison, Dior", "ref": "404", "category": "Pour Femme"}, {"name": "Escale á Portofino, Dior", "ref": "405", "category": "Pour Femme"}, {"name": "Ocean Lounge, Escada", "ref": "407", "category": "Pour Femme"}, {"name": "Omnia Crystalline, Bvlgari", "ref": "409", "category": "Pour Femme"}, {"name": "Coco, Chanel", "ref": "411", "category": "Pour Femme"}, {"name": "La Vie Est Belle, Lancôme", "ref": "418", "category": "Pour Femme"}, {"name": "Si, Armani", "ref": "433", "category": "Pour Femme"}, {"name": "Tentación, Nina Ricci", "ref": "437", "category": "Pour Femme"}, {"name": "Viva la Juicy, Juicy Couture", "ref": "444", "category": "Pour Femme"}, {"name": "Black Opium, YSL", "ref": "446", "category": "Pour Femme"}, {"name": "212 Vip Rose, Carolina Herrera", "ref": "448", "category": "Pour Femme"}, {"name": "Olympéa, Paco Rabanne", "ref": "458", "category": "Pour Femme"}, {"name": "Cool Water, Davidoff", "ref": "459", "category": "Pour Femme"}, {"name": "212 VIP, Carolina Herrera", "ref": "464", "category": "Pour Femme"}, {"name": "Poison Girl, Dior", "ref": "476", "category": "Pour Femme"}, {"name": "Good Girl, Carolina Herrera", "ref": "479", "category": "Pour Femme"}, {"name": "The Scent, Hugo Boss", "ref": "483", "category": "Pour Femme"}, {"name": "Lady Million Privé, Paco Rabanne", "ref": "488", "category": "Pour Femme"}, {"name": "Zadig & Voltaire Femme", "ref": "490", "category": "Pour Femme"}, {"name": "Le Femme, Prada", "ref": "493", "category": "Pour Femme"}, {"name": "Mon, Guerlain", "ref": "494", "category": "Pour Femme"}, {"name": "Miss Dior, Dior", "ref": "496", "category": "Pour Femme"}, {"name": "Fleur Musc, Narciso Rodríguez", "ref": "498", "category": "Pour Femme"}, {"name": "Scandal, Jean Paul Gaultier", "ref": "499", "category": "Pour Femme"}, {"name": "Mandarino Di Amalfi, Tom Ford", "ref": "763", "category": "Pour Femme"}, {"name": "Bonbon, Viktor&Rolf", "ref": "2409", "category": "Pour Femme"}, {"name": "Yes I Am, Cacharel", "ref": "2413", "category": "Pour Femme"}, {"name": "Si Passione, Giorgio Armani", "ref": "2417", "category": "Pour Femme"}, {"name": "Joy, Dior", "ref": "2418", "category": "Pour Femme"}, {"name": "L'interdit, Givenchy", "ref": "2421", "category": "Pour Femme"}, {"name": "Idôle, Lancôme", "ref": "2428", "category": "Pour Femme"}, {"name": "Libre, YSL", "ref": "2429", "category": "Pour Femme"}, {"name": "Omnia Amethyste, Bvlgari", "ref": "2430", "category": "Pour Femme"}, {"name": "La Belle, JPG", "ref": "2431", "category": "Pour Femme"}, {"name": "Lady Million Empire", "ref": "2432", "category": "Pour Femme"}, {"name": "Born in Roma, Valentino", "ref": "2435", "category": "Pour Femme"}, {"name": "Alive, Hugo Boss", "ref": "2437", "category": "Pour Femme"}, {"name": "Amor Forbidden Kiss, Cacharel", "ref": "2456", "category": "Pour Femme"}, {"name": "Loverdose, Diesel", "ref": "2457", "category": "Pour Femme"}, {"name": "Miss Dior", "ref": "2474", "category": "Pour Femme"}, {"name": "Irresistible, Givenchy", "ref": "2478", "category": "Pour Femme"}, {"name": "Angel Nova, Mugler", "ref": "2480", "category": "Pour Femme"}, {"name": "My Way, Giorgio Armani", "ref": "2481", "category": "Pour Femme"}, {"name": "Voce Viva, Valentino", "ref": "2483", "category": "Pour Femme"}, {"name": "Chance Tendre, Chanel", "ref": "2485", "category": "Pour Femme"}, {"name": "Chance Fraîche, Chanel", "ref": "2492", "category": "Pour Femme"}, {"name": "Perfect, Marc Jacobs", "ref": "2495", "category": "Pour Femme"}, {"name": "Issey Miyake, A Drop d'Issey", "ref": "2496", "category": "Pour Femme"}, {"name": "Alien Goddess, Mugler", "ref": "2499", "category": "Pour Femme"}, {"name": "Fame, Paco Rabanne", "ref": "2501", "category": "Pour Femme"}, {"name": "Paradoxe, Prada", "ref": "2503", "category": "Pour Femme"}, {"name": "Bombshell, Victoria's Secret", "ref": "2504", "category": "Pour Femme"}, {"name": "Olympéa Blossom, Paco Rabanne", "ref": "2508", "category": "Pour Femme"}, {"name": "Bombshell Nights, Victoria's Secret", "ref": "2509", "category": "Pour Femme"}, {"name": "Coconut Passion, Victoria's Secret", "ref": "2510", "category": "Pour Femme"}, {"name": "LoveMe, Tous", "ref": "2511", "category": "Pour Femme"}, {"name": "Toy 2 Bubble Gum, Moschino", "ref": "2512", "category": "Pour Femme"}, {"name": "Q, Dolce & Gabbana", "ref": "2515", "category": "Pour Femme"}, {"name": "Flora Gorgeous Gardenia, Gucci", "ref": "2516", "category": "Pour Femme"}, {"name": "Mon Guerlain Sparkling Bouquet, Guerlain", "ref": "2517", "category": "Pour Femme"}, {"name": "Blush, Carolina Herrera", "ref": "2519", "category": "Pour Femme"}, {"name": "Spring Flower, Creed", "ref": "2520", "category": "Pour Femme"}, {"name": "Divine, Jean Paul Gaultier", "ref": "2522", "category": "Pour Femme"}, {"name": "LoveMe Onyx, Tous", "ref": "2523", "category": "Pour Femme"}, {"name": "All of Me, Narciso Rodriguez", "ref": "2524", "category": "Pour Femme"}, {"name": "Sorbetto Rosso, Escada", "ref": "2527", "category": "Pour Femme"}, {"name": "Devotion, Dolce & Gabbana", "ref": "2528", "category": "Pour Femme"}, {"name": "Dylan Purple, Versace", "ref": "2529", "category": "Pour Femme"}, {"name": "LoveMe The Esmerald Elixir, Tous", "ref": "2530", "category": "Pour Femme"}, {"name": "Cloud, Ariana Grande", "ref": "2532", "category": "Pour Femme"}, {"name": "LoveMe The Silver, Tous", "ref": "2533", "category": "Pour Femme"}, {"name": "Very Good, Carolina Herrera", "ref": "2534", "category": "Pour Femme"}, {"name": "Lady Million Gold, Paco Rabanne", "ref": "2535", "category": "Pour Femme"}, {"name": "DKNY 24/7", "ref": "2536", "category": "Pour Femme"}, {"name": "La Vida Es Bella Elixir", "ref": "2537", "category": "Pour Femme"}, {"name": "Good Girl Sparkling Ice Elixir, Carolina Herrera", "ref": "2538", "category": "Pour Femme"}, {"name": "Venus, Nina Ricci", "ref": "2540", "category": "Pour Femme"}, {"name": "Fame Couture, Paco Rabanne", "ref": "2541", "category": "Pour Femme"}, {"name": "Paradoxe Intense, Prada", "ref": "2543", "category": "Pour Femme"}, {"name": "Zadig, Zadig & Voltaire", "ref": "2545", "category": "Pour Femme"}, {"name": "Ella Ella, Cacharel", "ref": "2546", "category": "Pour Femme"}, {"name": "La Bomba, Carolina Herrera", "ref": "2549", "category": "Pour Femme"}, {"name": "Q by Dolce & Gabbana", "ref": "2550", "category": "Pour Femme"}, {"name": "La Belle Paradise Garden, Jean Paul Gaultier", "ref": "2551", "category": "Pour Femme"}, {"name": "La Vida Es Bella Nude Vainilla, Lancôme", "ref": "2552", "category": "Pour Femme"}, {"name": "Audace, Rochas", "ref": "2553", "category": "Pour Femme"}, {"name": "Caos, Tous", "ref": "2554", "category": "Pour Femme"}, {"name": "Crystal Noir Parfum, Versace", "ref": "2555", "category": "Pour Femme"}, {"name": "Libre Vanille Couture, YSL", "ref": "2556", "category": "Pour Femme"}, {"name": "Born in Roma Extradose Donna, Valentino", "ref": "2558", "category": "Pour Femme"}, {"name": "Power of You, Giorgio Armani", "ref": "2559", "category": "Pour Femme"}, {"name": "Born in Roma Purple Melancholia, Valentino", "ref": "2560", "category": "Pour Femme"}, {"name": "Crystal Emerald, Versace", "ref": "2561", "category": "Pour Femme"}, {"name": "Chance eau Splendide, Chanel", "ref": "2562", "category": "Pour Femme"}, {"name": "Fame in Love, Paco Rabanne", "ref": "2563", "category": "Pour Femme"}, {"name": "Miutine, Miu Miu", "ref": "2564", "category": "Pour Femme"}, {"name": "Yum Me Sunny!, Escada", "ref": "2565", "category": "Pour Femme"}, {"name": "Euphoria Bold Elixir, Calvin Klein", "ref": "2566", "category": "Pour Femme"}, {"name": "Euphoria Magnetic Elixir, Calvin Klein", "ref": "2567", "category": "Pour Femme"}, {"name": "Euphoria Solar Elixir, Calvin Klein", "ref": "2568", "category": "Pour Femme"}, {"name": "Paula's Ibiza, Loewe", "ref": "3020", "category": "Pour Femme"}, {"name": "Bleecker Street, Bond 9", "ref": "3034", "category": "Pour Femme"}, {"name": "Toy 2 Pearl, Moschino", "ref": "3039", "category": "Pour Femme"}, {"name": "Bianco Latte, Giardini Di Toscana", "ref": "7029", "category": "Pour Femme"}, {"name": "Eclaire Banoffi, Lattafa", "ref": "7085", "category": "Pour Femme"}, {"name": "Narciso Rodríguez", "ref": "113", "category": "Pour Homme"}, {"name": "Cool Water, Davidoff", "ref": "114", "category": "Pour Homme"}, {"name": "Acqua Di Giò, Armani", "ref": "115", "category": "Pour Homme"}, {"name": "Carolina Herrera Men", "ref": "121", "category": "Pour Homme"}, {"name": "212 Sexy Men, Carolina Herrera", "ref": "122", "category": "Pour Homme"}, {"name": "Light Blue, D&G", "ref": "123", "category": "Pour Homme"}, {"name": "Black XS, Paco Rabanne", "ref": "127", "category": "Pour Homme"}, {"name": "Polo Blue, Ralph Lauren", "ref": "128", "category": "Pour Homme"}, {"name": "L'eau D'Issey, Issey Miyake", "ref": "133", "category": "Pour Homme"}, {"name": "Aqva, Bvlgari", "ref": "134", "category": "Pour Homme"}, {"name": "Bleu, Chanel", "ref": "135", "category": "Pour Homme"}, {"name": "XY, Hugo Boss", "ref": "139", "category": "Pour Homme"}, {"name": "Men NYC, 212", "ref": "142", "category": "Pour Homme"}, {"name": "Ultraviolet Man, Paco Rabanne", "ref": "145", "category": "Pour Homme"}, {"name": "One Million, Paco Rabanne", "ref": "146", "category": "Pour Homme"}, {"name": "Fahrenheit, Dior", "ref": "148", "category": "Pour Homme"}, {"name": "Allure Sport, Chanel", "ref": "149", "category": "Pour Homme"}, {"name": "Polo Sport, Ralph Lauren", "ref": "154", "category": "Pour Homme"}, {"name": "Bottled Night, Hugo Boss", "ref": "155", "category": "Pour Homme"}, {"name": "Solo, Loewe", "ref": "156", "category": "Pour Homme"}, {"name": "212 Vip Men, Carolina Herrera", "ref": "158", "category": "Pour Homme"}, {"name": "Euphoria, Calvin Klein", "ref": "161", "category": "Pour Homme"}, {"name": "Only the Brave, Diesel", "ref": "162", "category": "Pour Homme"}, {"name": "The One, D&G", "ref": "163", "category": "Pour Homme"}, {"name": "Armani Code", "ref": "164", "category": "Pour Homme"}, {"name": "Diamonds, Armani", "ref": "165", "category": "Pour Homme"}, {"name": "Boss, Hugo Boss", "ref": "166", "category": "Pour Homme"}, {"name": "Le Male, Jean Paul Gaultier", "ref": "167", "category": "Pour Homme"}, {"name": "Hugo, Hugo Boss", "ref": "177", "category": "Pour Homme"}, {"name": "Terre D'Hermès", "ref": "181", "category": "Pour Homme"}, {"name": "Armani Pour Homme", "ref": "182", "category": "Pour Homme"}, {"name": "Invictus, Paco Rabanne", "ref": "185", "category": "Pour Homme"}, {"name": "Polo Red, Ralph Lauren", "ref": "187", "category": "Pour Homme"}, {"name": "Polo Black, Ralph Lauren", "ref": "188", "category": "Pour Homme"}, {"name": "Spicebomb, Viktor & Rolf", "ref": "197", "category": "Pour Homme"}, {"name": "Eros, Versace", "ref": "199", "category": "Pour Homme"}, {"name": "Intenso, D&G", "ref": "201", "category": "Pour Homme"}, {"name": "Sauvage, Dior", "ref": "204", "category": "Pour Homme"}, {"name": "Versace", "ref": "205", "category": "Pour Homme"}, {"name": "The Scent, Hugo Boss", "ref": "209", "category": "Pour Homme"}, {"name": "Ck2, Calvin Klein", "ref": "210", "category": "Pour Homme"}, {"name": "Acqua di Giò Profumo, Armani", "ref": "211", "category": "Pour Homme"}, {"name": "Creed Aventus", "ref": "214", "category": "Pour Homme"}, {"name": "Zadig & Voltaire Homme", "ref": "220", "category": "Pour Homme"}, {"name": "Le Homme, Prada", "ref": "221", "category": "Pour Homme"}, {"name": "Ultra Male, Jean Paul Gaultier", "ref": "222", "category": "Pour Homme"}, {"name": "Luna Rossa, Prada", "ref": "223", "category": "Pour Homme"}, {"name": "Uomo, Valentino", "ref": "224", "category": "Pour Homme"}, {"name": "Pure XS, Paco Rabanne", "ref": "226", "category": "Pour Homme"}, {"name": "Stronger With You, Armani", "ref": "227", "category": "Pour Homme"}, {"name": "Y, YSL", "ref": "228", "category": "Pour Homme"}, {"name": "Wood Essence, Bvlgari", "ref": "238", "category": "Pour Homme"}, {"name": "Bad Boy, CH", "ref": "243", "category": "Pour Homme"}, {"name": "K, D&G", "ref": "244", "category": "Pour Homme"}, {"name": "Le Beau, Jean Paul Gaultier", "ref": "245", "category": "Pour Homme"}, {"name": "Wanted, Azzaro", "ref": "246", "category": "Pour Homme"}, {"name": "Moschino Toy Boy", "ref": "251", "category": "Pour Homme"}, {"name": "Homme, Dior 2020", "ref": "266", "category": "Pour Homme"}, {"name": "Fusión D'Issey", "ref": "267", "category": "Pour Homme"}, {"name": "H24, Hermès", "ref": "275", "category": "Pour Homme"}, {"name": "Phantom, Paco Rabanne", "ref": "276", "category": "Pour Homme"}, {"name": "Scandal, Jean Paul Gaultier", "ref": "277", "category": "Pour Homme"}, {"name": "Born in Roma, Valentino", "ref": "278", "category": "Pour Homme"}, {"name": "Héroes 212, Carolina Herrera", "ref": "279", "category": "Pour Homme"}, {"name": "Defy, Calvin Klein", "ref": "280", "category": "Pour Homme"}, {"name": "Sauvage Elixir, Dior", "ref": "281", "category": "Pour Homme"}, {"name": "Kenzo Intenso, Kenzo", "ref": "282", "category": "Pour Homme"}, {"name": "Solo Loewe Sport, Loewe", "ref": "283", "category": "Pour Homme"}, {"name": "The One Grey, Dolce & Gabbana", "ref": "286", "category": "Pour Homme"}, {"name": "Stronger With Absolutely, Giorgio Armani", "ref": "289", "category": "Pour Homme"}, {"name": "Explorer, Mont Blanc", "ref": "290", "category": "Pour Homme"}, {"name": "Man Rain Essence, Bvlgari", "ref": "291", "category": "Pour Homme"}, {"name": "MYSLF, Yves Saint Laurent", "ref": "292", "category": "Pour Homme"}, {"name": "Invictus Victory Elixir, Paco Rabanne", "ref": "293", "category": "Pour Homme"}, {"name": "One Million Golden Oud, Paco Rabanne", "ref": "294", "category": "Pour Homme"}, {"name": "Absolut Adventus, Creed", "ref": "295", "category": "Pour Homme"}, {"name": "Bottle Elixir, Hugo Boss", "ref": "296", "category": "Pour Homme"}, {"name": "Le Male Elixir, Jean Paul Gaultier", "ref": "297", "category": "Pour Homme"}, {"name": "Invictus Victory, Paco Rabanne", "ref": "299", "category": "Pour Homme"}, {"name": "Mandarino Di Amalfi, Tom Ford", "ref": "763", "category": "Pour Homme"}, {"name": "Ombre Nomade, Louis Vuitton", "ref": "850", "category": "Pour Homme"}, {"name": "L'immensité, Louis Vuitton", "ref": "854", "category": "Pour Homme"}, {"name": "Imagination, Louis Vuitton", "ref": "859", "category": "Pour Homme"}, {"name": "Costa Azzurra, Tom Ford", "ref": "909", "category": "Pour Homme"}, {"name": "Sahara Noir, Tom Ford", "ref": "919", "category": "Pour Homme"}, {"name": "One Million Elixir, Paco Rabanne", "ref": "5000", "category": "Pour Homme"}, {"name": "Le Sel D'Issey, Miyake", "ref": "5001", "category": "Pour Homme"}, {"name": "One Million Gold, Paco Rabanne", "ref": "5002", "category": "Pour Homme"}, {"name": "Bvlgari Man in Black", "ref": "5003", "category": "Pour Homme"}, {"name": "Eros Najim, Versace", "ref": "5004", "category": "Pour Homme"}, {"name": "Phantom Elixir, Paco Rabanne", "ref": "5005", "category": "Pour Homme"}, {"name": "Bottled Absolu, Hugo Boss", "ref": "5006", "category": "Pour Homme"}, {"name": "Devotion Pour Homme, D&G", "ref": "5007", "category": "Pour Homme"}, {"name": "Le Beau Paradise Garden, Jean Paul Gaultier", "ref": "5010", "category": "Pour Homme"}, {"name": "Paradigme, Prada", "ref": "5012", "category": "Pour Homme"}, {"name": "Myslf L'absolu, Yves Saint Laurent", "ref": "5013", "category": "Pour Homme"}, {"name": "212 Vip Black Elixir, Carolina Herrera", "ref": "5014", "category": "Pour Homme"}, {"name": "Stronger With You Powerful, Giorgio Armani", "ref": "5016", "category": "Pour Homme"}, {"name": "Phantom in Red, Paco Rabanne", "ref": "5017", "category": "Pour Homme"}, {"name": "Baccarat Rouge 540, Maison Francis Kurkdjian", "ref": "764", "category": "Parfums árabes"}, {"name": "Roses Musk, Montale", "ref": "765", "category": "Parfums árabes"}, {"name": "Yara, Lattafa", "ref": "7008", "category": "Parfums árabes"}, {"name": "Odyssey Mandarin, Sky Armaf", "ref": "7057", "category": "Parfums árabes"}, {"name": "Asad Zanzibar", "ref": "7059", "category": "Parfums árabes"}, {"name": "Asad, Lattafa", "ref": "7063", "category": "Parfums árabes"}, {"name": "Yara, Candy", "ref": "7053", "category": "Parfums árabes"}, {"name": "Yara, Tous", "ref": "7058", "category": "Parfums árabes"}, {"name": "Yara Moi, Lattafa", "ref": "7064", "category": "Parfums árabes"}, {"name": "Yum Pistachio Gelatto 33, Kayali", "ref": "7028", "category": "Parfums árabes"}, {"name": "Vainilla 28, Kayali", "ref": "7033", "category": "Parfums árabes"}, {"name": "Eden Sparkling Lychee 39, Kayali", "ref": "7036", "category": "Parfums árabes"}, {"name": "Eden Juicy Apple 01, Kayali", "ref": "7037", "category": "Parfums árabes"}, {"name": "Vanilla Candy Rock Sugar 42, Kayali", "ref": "7044", "category": "Parfums árabes"}, {"name": "Maldivas in the Bottle Ylang, Kayali", "ref": "7056", "category": "Parfums árabes"}, {"name": "Yum Boujee Marshmallow, Kayali", "ref": "7065", "category": "Parfums árabes"}, {"name": "Fleur Majesty Rose Royali, Kayali", "ref": "7066", "category": "Parfums árabes"}, {"name": "Petit et Mamas, Bvlgari", "ref": "326", "category": "Parfums Infantiles"}, {"name": "Tarta de Chocolate, Givenchy", "ref": "370", "category": "Parfums Infantiles"}, {"name": "Baby Touch, Burberry (Unisex)", "ref": "371", "category": "Parfums Infantiles"}, {"name": "Tous Kids Niño", "ref": "374", "category": "Parfums Infantiles"}, {"name": "Tous Kids Niña", "ref": "375", "category": "Parfums Infantiles"}, {"name": "One, Calvin Klein", "ref": "62 (F) / 112 (H)", "category": "Unisex"}, {"name": "Every One, CK", "ref": "2436 (F) / 249 (H)", "category": "Unisex"}, {"name": "Crema de manos perfumada", "ref": "83", "category": "Cremas de manos (35g)"}, {"name": "Crema de manos perfumada", "ref": "433", "category": "Cremas de manos (35g)"}, {"name": "Crema de manos perfumada", "ref": "2413", "category": "Cremas de manos (35g)"}, {"name": "Crema de manos perfumada", "ref": "2501", "category": "Cremas de manos (35g)"}, {"name": "Cheirosa '62, Sol de Janeiro", "ref": "4708", "category": "Brumas corporales"}, {"name": "Cheirosa '40, Sol de Janeiro", "ref": "4715", "category": "Brumas corporales"}, {"name": "Cheirosa '71, Sol de Janeiro", "ref": "4716", "category": "Brumas corporales"}, {"name": "Cheirosa '91, Sol de Janeiro", "ref": "4717", "category": "Brumas corporales"}, {"name": "Limonada Gelada, Sol de Janeiro", "ref": "4718", "category": "Brumas corporales"}, {"name": "Cheeky Biquini, Sol de Janeiro", "ref": "4719", "category": "Brumas corporales"}, {"name": "White Peach Mango, Victoria's Secret", "ref": "4720", "category": "Brumas corporales"}];
+
+/* ========================================================================= */
+
+let currentSeller = null;
+let cart = []; // {ref, name, category, qty}
+
+function money(n){
+  return n.toLocaleString('es-ES', {minimumFractionDigits:2, maximumFractionDigits:2}) + " €";
+}
+
+function safeLocalStorageGet(key){
+  try { return localStorage.getItem(key); } catch(e){ return null; }
+}
+function safeLocalStorageSet(key, val){
+  try { localStorage.setItem(key, val); } catch(e){ /* ignore */ }
+}
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 1800);
+}
+
+/* ---------- screen management ---------- */
+function showScreen(id){
+  ['screen-picker','screen-sale','screen-confirm','screen-dashboard'].forEach(s=>{
+    document.getElementById(s).classList.toggle('hidden', s !== id);
+  });
+  document.getElementById('tabbar').classList.toggle('hidden', id === 'screen-picker');
+  if(id === 'screen-sale'){ setActiveTab('tabSale'); }
+  if(id === 'screen-dashboard'){ setActiveTab('tabDashboard'); loadDashboard(); }
+}
+function setActiveTab(tabId){
+  ['tabSale','tabDashboard'].forEach(t=>{
+    document.getElementById(t).classList.toggle('active', t === tabId);
+  });
+}
+
+/* ---------- name picker ---------- */
+function renderNameGrid(){
+  const grid = document.getElementById('nameGrid');
+  grid.innerHTML = '';
+  SELLERS.forEach(name=>{
+    const b = document.createElement('button');
+    b.className = 'name-btn';
+    b.textContent = name;
+    b.onclick = () => selectSeller(name);
+    grid.appendChild(b);
+  });
+}
+function selectSeller(name){
+  currentSeller = name;
+  safeLocalStorageSet('rp_seller', name);
+  document.getElementById('whoLabel').textContent = name;
+  if(APPS_SCRIPT_URL.indexOf('PASTE_YOUR') === 0){
+    document.getElementById('configWarning').classList.remove('hidden');
+  }
+  showScreen('screen-sale');
+}
+document.getElementById('switchSellerBtn').onclick = () => {
+  showScreen('screen-picker');
+};
+
+/* ---------- perfume search ---------- */
+const searchInput = document.getElementById('perfumeSearch');
+const resultsBox = document.getElementById('searchResults');
+
+function normalize(s){
+  return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+}
+
+searchInput.addEventListener('input', () => {
+  const q = normalize(searchInput.value.trim());
+  if(q.length === 0){ resultsBox.classList.add('hidden'); resultsBox.innerHTML=''; return; }
+  const matches = CATALOGUE.filter(it =>
+    normalize(it.name).includes(q) || it.ref.toLowerCase() === q || it.ref.toLowerCase().startsWith(q)
+  ).slice(0, 30);
+  if(matches.length === 0){
+    resultsBox.innerHTML = '<div class="result-item">Sin resultados</div>';
+  } else {
+    resultsBox.innerHTML = matches.map((it, i) =>
+      `<div class="result-item" data-idx="${CATALOGUE.indexOf(it)}">
+         ${escapeHtml(it.name)}
+         <small>Ref. ${escapeHtml(it.ref)} · ${escapeHtml(it.category)}</small>
+       </div>`
+    ).join('');
+  }
+  resultsBox.classList.remove('hidden');
+});
+resultsBox.addEventListener('click', (e) => {
+  const row = e.target.closest('.result-item');
+  if(!row || row.dataset.idx === undefined) return;
+  const item = CATALOGUE[parseInt(row.dataset.idx, 10)];
+  addToCart(item);
+  searchInput.value = '';
+  resultsBox.classList.add('hidden');
+  resultsBox.innerHTML = '';
+});
+document.addEventListener('click', (e) => {
+  if(!e.target.closest('.search-wrap')){ resultsBox.classList.add('hidden'); }
+});
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* ---------- cart ---------- */
+function addToCart(item){
+  const existing = cart.find(c => c.ref === item.ref && c.category === item.category);
+  if(existing){ existing.qty += 1; }
+  else { cart.push({ref:item.ref, name:item.name, category:item.category, qty:1}); }
+  renderCart();
+}
+function changeQty(idx, delta){
+  cart[idx].qty += delta;
+  if(cart[idx].qty <= 0){ cart.splice(idx,1); }
+  renderCart();
+}
+function removeItem(idx){
+  cart.splice(idx,1);
+  renderCart();
+}
+function cartTotal(){
+  return cart.reduce((sum,c)=> sum + c.qty * BOTTLE_PRICE, 0);
+}
+function renderCart(){
+  const list = document.getElementById('cartList');
+  if(cart.length === 0){
+    list.innerHTML = '<div class="empty-hint">Aún no has añadido ningún perfume</div>';
+  } else {
+    list.innerHTML = cart.map((c, idx) => `
+      <div class="cart-item">
+        <div class="info">
+          <div class="n">${escapeHtml(c.name)}</div>
+          <div class="r">Ref. ${escapeHtml(c.ref)} · ${escapeHtml(c.category)}</div>
+        </div>
+        <div class="qty-ctrl">
+          <button onclick="changeQty(${idx},-1)">−</button>
+          <span>${c.qty}</span>
+          <button onclick="changeQty(${idx},1)">+</button>
+          <button class="rm" onclick="removeItem(${idx})">✕</button>
+        </div>
+      </div>
+    `).join('');
+  }
+  document.getElementById('cartTotal').textContent = money(cartTotal());
+}
+
+/* ---------- confirm order ---------- */
+document.getElementById('confirmOrderBtn').onclick = async () => {
+  const errBox = document.getElementById('saleError');
+  errBox.classList.add('hidden');
+  const clientName = document.getElementById('clientName').value.trim();
+  const clientPhone = document.getElementById('clientPhone').value.trim();
+
+  if(!clientName){ showError('Añade el nombre del cliente.'); return; }
+  if(cart.length === 0){ showError('Añade al menos un perfume al pedido.'); return; }
+
+  const btn = document.getElementById('confirmOrderBtn');
+  btn.disabled = true; btn.textContent = 'Guardando...';
+
+  const payload = {
+    action: 'logSale',
+    seller: currentSeller,
+    clientName, clientPhone,
+    items: cart.map(c => ({ref:c.ref, name:c.name, category:c.category, qty:c.qty})),
+    total: cartTotal(),
+    clientTimestamp: new Date().toISOString()
+  };
+
+  try{
+    if(APPS_SCRIPT_URL.indexOf('PASTE_YOUR') === 0){
+      throw new Error('La app no está conectada todavía (falta APPS_SCRIPT_URL).');
+    }
+    const res = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      headers: {'Content-Type': 'text/plain;charset=utf-8'}, // avoids CORS preflight against Apps Script
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if(!data.ok){ throw new Error(data.error || 'Error desconocido guardando el pedido.'); }
+    renderSummary(payload);
+    cart = [];
+    document.getElementById('clientName').value = '';
+    document.getElementById('clientPhone').value = '';
+    renderCart();
+    showScreen('screen-confirm');
+  } catch(err){
+    showError('No se pudo guardar el pedido: ' + err.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Confirmar pedido';
+  }
+
+  function showError(msg){
+    errBox.textContent = msg;
+    errBox.classList.remove('hidden');
+  }
+};
+
+function renderSummary(order){
+  const lines = order.items.map(it => `• ${it.name} (Ref. ${it.ref}) x${it.qty}`).join('\n');
+  const text =
+`Pedido — Resilience Parfums
+
+${lines}
+
+Total: ${money(order.total)}
+
+${PAYMENT_TERMS_ES} Total a pagar: ${money(order.total)}.`;
+  document.getElementById('summaryText').textContent = text;
+}
+
+document.getElementById('copySummaryBtn').onclick = async () => {
+  const text = document.getElementById('summaryText').textContent;
+  try{
+    await navigator.clipboard.writeText(text);
+    showToast('Resumen copiado');
+  } catch(e){
+    showToast('No se pudo copiar automáticamente — selecciona el texto a mano');
+  }
+};
+document.getElementById('newSaleBtn').onclick = () => showScreen('screen-sale');
+
+/* ---------- dashboard ---------- */
+async function loadDashboard(){
+  const loading = document.getElementById('dashLoading');
+  const errBox = document.getElementById('dashError');
+  const content = document.getElementById('dashContent');
+  loading.classList.remove('hidden');
+  errBox.classList.add('hidden');
+  content.classList.add('hidden');
+
+  if(APPS_SCRIPT_URL.indexOf('PASTE_YOUR') === 0){
+    loading.classList.add('hidden');
+    errBox.textContent = 'La app no está conectada todavía (falta APPS_SCRIPT_URL).';
+    errBox.classList.remove('hidden');
+    return;
+  }
+
+  try{
+    const res = await fetch(APPS_SCRIPT_URL + '?action=dashboard');
+    const data = await res.json();
+    if(!data.ok){ throw new Error(data.error || 'Error desconocido.'); }
+    loading.classList.add('hidden');
+    content.classList.remove('hidden');
+    document.getElementById('dashMonthLabel').textContent = data.month || '';
+    document.getElementById('teamBottles').textContent = data.teamBottles;
+    document.getElementById('teamThreshold').textContent = data.teamThreshold;
+    const pct = Math.min(100, Math.round((data.teamBottles / data.teamThreshold) * 100));
+    document.getElementById('teamProgressBar').style.width = pct + '%';
+    document.getElementById('teamBonusNote').textContent = data.bonusActive
+      ? '¡Objetivo alcanzado! 0,90 € de descuento por botella en el próximo pedido.'
+      : `Faltan ${Math.max(0, data.teamThreshold - data.teamBottles)} botellas para el bono del equipo este mes.`;
+
+    const statsBox = document.getElementById('sellerStats');
+    statsBox.innerHTML = Object.entries(data.sellers || {}).map(([name, s]) => `
+      <div class="seller-row">
+        <div class="name">${escapeHtml(name)}</div>
+        <div class="figs">${s.bottles} botellas · ${money(s.commission)}</div>
+      </div>
+    `).join('');
+  } catch(err){
+    loading.classList.add('hidden');
+    errBox.textContent = 'No se pudo cargar el panel: ' + err.message;
+    errBox.classList.remove('hidden');
+  }
+}
+document.getElementById('refreshDashBtn').onclick = loadDashboard;
+document.getElementById('tabSale').onclick = () => showScreen('screen-sale');
+document.getElementById('tabDashboard').onclick = () => showScreen('screen-dashboard');
+
+/* ---------- boot ---------- */
+renderNameGrid();
+const savedSeller = safeLocalStorageGet('rp_seller');
+if(savedSeller && SELLERS.includes(savedSeller)){
+  selectSeller(savedSeller);
+} else {
+  showScreen('screen-picker');
+}
+</script>
+</body>
+</html>
